@@ -14,11 +14,12 @@ kaplay({
 
 
 loadFont("tahoma", "assets/tahoma.ttf")
+loadSound("pop", "assets/pop.mp3")
+loadSound("bg", "assets/background.mp3")
+loadSprite("cloud", "assets/cloud.png")
+
 
 scene("main", () => {
-  loadSound("pop", "assets/pop.mp3")
-  loadSound("bg", "assets/background.mp3")
-  loadSprite("cloud", "assets/cloud.png")
 
 
   for (let x of [1, 2, 3, 4, 5]) {
@@ -69,21 +70,15 @@ scene("main", () => {
 
 
     ]);
+  });
 
-    
-    circleSprite.onClick(() => {
 
-      addKaboom(circleSprite.pos);
-      shake();
-      play("pop", {
-        volume:0.5*sound,
-        loop: false
-      })
-      circleSprite.destroy();
-      score ++;
-
-    });
-
+  onClick("balloon", (bln) => {
+    addKaboom(bln.pos);
+    shake();
+    play("pop", { volume:0.5*sound, loop: false });
+    destroy(bln);
+    score ++
   });
 
   onUpdate(() => {
@@ -131,25 +126,19 @@ scene("settings", () => {
 
     let music = add([ sprite(sound ? "musicOn" : "musicNo"), pos(width()/2, height()/2 + 50), anchor("center"), scale(0.2), area(), "music"])
 
-  let speedUp = add([ text("►", { size:60 }), area(), color(255, 255, 255), pos(width()/2 + 70, height()/2-40), anchor("center")])
-  let speedDown = add([ text("◄", { size:60 }), area(), color(255, 255, 255),pos(width()/2 - 70, height()/2-40), anchor("center")])
-  speedDown.onClick(() => {
-    if (speed > 1) {
-      speed -= 1
-      speedCounter.text = speed
-    }
-  });
+  let speedUp = add([ text("►", { size:60 }), area(), color(255, 255, 255), pos(width()/2 + 70, height()/2-40), anchor("center"), "speedButton", "up"])
+  let speedDown = add([ text("◄", { size:60 }), area(), color(255, 255, 255),pos(width()/2 - 70, height()/2-40), anchor("center"), "speedButton", "down"])
 
-  speedUp.onClick(() => {
-    if (speed < 10) {
-      speed += 1
-      speedCounter.text = speed
+  onClick("speedButton", (speedButton) => {
+    if (speedButton.is("up")) {
+      if (speed < 10) { speed += 1; speedCounter.text = speed; }
+    } else {
+      if (speed > 1) { speed -= 1; speedCounter.text = speed; }
     }
-  });
+  })
 
   onClick("music", () => {
     sound = !sound;
-    console.log("clicked, sound changing");
     loadSprite("musicOn", "assets/musicOn.png")
     loadSprite("musicNo", "assets/musicNo.png");
     destroyAll("music");
