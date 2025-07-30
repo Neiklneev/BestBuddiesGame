@@ -1,18 +1,20 @@
 // Importing our game engine, Kaplay
 import kaplay from "https://unpkg.com/kaplay@3001.0.19/dist/kaplay.mjs";
 
+// Declaring intial variables
 const speedArray = [60, 80, 100, 115, 130, 140, 150, 155, 160, 180]
 const bpsArray = [0.3, 0.5, 0.8, 1.2, 1.6, 1.9, 2.2, 2.4, 2.5, 3.0]
-
 let sound = 1;
 let speed = 10;
 
+// Initializing engine
 kaplay({
   background:"#87CEEB",
   font: "tahoma"
 });
 
 
+// Loading some assets
 loadFont("tahoma", "assets/tahoma.ttf")
 loadSound("pop", "assets/pop.mp3")
 loadSound("bg", "assets/background.mp3")
@@ -20,9 +22,12 @@ loadSprite("cloud", "assets/cloud.png")
 
 
 scene("main", () => {
+  
+  let score = 0;
 
 
-  for (let x of [1, 2, 3, 4, 5]) {
+  // Creating five clouds at random positions
+  for (let i = 0; i < 5; i++) {
     add([
       sprite("cloud"),
       pos(rand(vec2(width(), height()))),
@@ -30,10 +35,7 @@ scene("main", () => {
     ])
   }
 
-  let bg = play("bg", {
-    loop:true,
-    volume: 0.2*sound
-  })
+  let bg = play("bg", {loop: true, volume: 0.2*sound }) // Playing Background Music
 
   let settingsButton = add([
     text("⚙"),
@@ -50,29 +52,24 @@ scene("main", () => {
       anchor("topleft")
     ])
 
-  let score = 0;
 
 
+  // Creating a balloon every 1/BPS seconds
   loop(1/bpsArray[speed-1], () => {
 
-    let position = rand(vec2(60, height()), vec2(width()-60, height() - 170))
-
     let circleSprite = add([
-
       circle(60),
       area(),
-      pos(position),
+      pos(rand(60, width()-60), height()),  // Choosing a random position, accounting for the radius
       color(rand(rgb(255, 255, 255))),
       outline(4),
       anchor("center"),
-      move(UP, rand(speedArray[speed-1]-15, speedArray[speed-1]+15)),
+      move(UP, rand(speedArray[speed-1]-15, speedArray[speed-1]+15)), // Giving + or - fifteen range for the speed of balloons
       "balloon",
-
-
     ]);
   });
 
-
+  // Destroying balloons on click, with pizazz
   onClick("balloon", (bln) => {
     addKaboom(bln.pos);
     shake();
@@ -81,7 +78,10 @@ scene("main", () => {
     score ++
   });
 
+
   onUpdate(() => {
+
+    // Checking whether any balloons are above the screen. If so, game over
     for (let balloon of get("balloon")) {
       if (balloon.pos.y < 0) {
         bg.stop();
@@ -89,11 +89,14 @@ scene("main", () => {
       }
     }
 
+    // Hover effect for settings icon
     if (settingsButton.isHovering()) {
       settingsButton.color = Color.fromHex(0x555555);
     } else {
       settingsButton.color = BLACK;
     }
+
+    // Updating score counter
     scoreCounter.text = score;
   });
 
@@ -106,10 +109,10 @@ scene("main", () => {
 
 scene("settings", () => {
 
-  loadSprite("balloons", "assets/balloons.png")
-  loadSprite("speed", "assets/speed.png")
+  // Loading sound icon assets
   loadSprite("musicOn", "assets/musicOn.png")
   loadSprite("musicNo", "assets/musicNo.png")
+
   add([
     text("Settings", {size:60}),
     pos(width()/2, 100),
@@ -124,29 +127,34 @@ scene("settings", () => {
     anchor("center")
   ]);
 
-    let music = add([ sprite(sound ? "musicOn" : "musicNo"), pos(width()/2, height()/2 + 50), anchor("center"), scale(0.2), area(), "music"])
+  // Adding sound icon
+  let music = add([ sprite(sound ? "musicOn" : "musicNo"), pos(width()/2, height()/2 + 50), anchor("center"), scale(0.2), area(), "music"])
 
+  // Adding two arrow buttons for speed level
   let speedUp = add([ text("►", { size:60 }), area(), color(255, 255, 255), pos(width()/2 + 70, height()/2-40), anchor("center"), "speedButton", "up"])
   let speedDown = add([ text("◄", { size:60 }), area(), color(255, 255, 255),pos(width()/2 - 70, height()/2-40), anchor("center"), "speedButton", "down"])
 
   onClick("speedButton", (speedButton) => {
     if (speedButton.is("up")) {
-      if (speed < 10) { speed += 1; speedCounter.text = speed; }
+      if (speed < 10) { speed += 1; speedCounter.text = speed; } // Incrementing speed
     } else {
-      if (speed > 1) { speed -= 1; speedCounter.text = speed; }
+      if (speed > 1) { speed -= 1; speedCounter.text = speed; }  // Decrementing speed
     }
   })
 
   onClick("music", () => {
     sound = !sound;
+
+    // Need to reload sprites because of cache clearing
     loadSprite("musicOn", "assets/musicOn.png")
     loadSprite("musicNo", "assets/musicNo.png");
+
     destroyAll("music");
     var music = add([ sprite(sound ? "musicOn" : "musicNo"), pos(width()/2, height()/2 + 50), anchor("center"), scale(0.2), area(), "music"])
-  })
+  });
 
   let saveButton = add([
-    rect(200+width()/4, 100, {radius:20}),
+    rect(200+width()/4, 100, {radius:20}), // Width used for responsiveness. For testing use laptop and iPhone SE
     color("#00FF00"),
     pos(width()/2, height() - 100),
     anchor("center"),
@@ -160,6 +168,8 @@ scene("settings", () => {
   })
 
   onUpdate(() => {
+    
+    // Hover animation for arrows
     for (let button of get("button")) {
       if (button.isHovering()) {
         button.color = Color.fromHex(0x888888);
@@ -168,28 +178,30 @@ scene("settings", () => {
       }
     }
 
+    // Scale hover animation
     if (saveButton.isHovering()) {
-      saveButton.scale.x += (((1.2-saveButton.scale.x)/8))
-      saveButton.scale.y += (((1.2-saveButton.scale.y)/8))
+      saveButton.scale.x += (((1.2-saveButton.scale.x)/8));
+      saveButton.scale.y += (((1.2-saveButton.scale.y)/8));
     } else {
-      saveButton.scale.x += ((1-saveButton.scale.x)/8)
-      saveButton.scale.y += ((1-saveButton.scale.y)/8)
+      saveButton.scale.x += ((1-saveButton.scale.x)/8);
+      saveButton.scale.y += ((1-saveButton.scale.y)/8);
     }
 
-  })
-})
+  });
+});
 
 
 
 scene("over", (finalScore) => {
   add([
-    text("Game Over", { "size": 60 }),
+    text("Game Over", { "size": 60 }), // Game Over title, red
     color(255, 0, 0),
     pos(width()/2, 120),
     anchor("center")
   ]);
+
   add([
-    text(finalScore, { "size": 40 }),
+    text(finalScore, { "size": 40 }), // Label above title with score on it, black
     color(0, 0, 0),
     pos(width()/2, 50),
     anchor("center")
@@ -213,6 +225,8 @@ scene("over", (finalScore) => {
   ]);
 
   onUpdate(() => {
+    
+    // Scale animation for back button
     if (backButton.isHovering()) {
       backButton.scale.x += (((1.2-backButton.scale.x)/8))
       backButton.scale.y += (((1.2-backButton.scale.y)/8))
@@ -224,8 +238,10 @@ scene("over", (finalScore) => {
 
   backButton.onClick(() => {
     go("main");
-  })
+  });
 
-})
+});
+
+
 // Activating the main scene
-go("main");
+go("main"); 
