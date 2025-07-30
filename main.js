@@ -20,7 +20,36 @@ loadSound("pop", "assets/pop.mp3")
 loadSound("bg", "assets/background.mp3")
 loadSprite("cloud", "assets/cloud.png")
 
+scene("menu", () => {
 
+  add([ text("Poppy", { size:60 }), color(BLACK), pos(width()/2, 60), anchor("center") ])
+  add([ text("the", { size:30 }), color(RED), pos(width()/2, 120), anchor("center") ])
+  add([ text("POPPER", { size:60 }), color(BLACK), pos(width()/2, 200), anchor("center") ])
+  add([ sprite("cloud"), pos(width()/2, height()/2+30), anchor("center"), z(-1)])
+
+  let startButton = add([
+    rect(200+width()/4, 100, {radius:20}), // Width used for responsiveness. For testing use laptop and iPhone SE
+    color("#00FF00"),
+    pos(width()/2, height() - 100),
+    anchor("center"),
+    outline(4),
+    scale(1),
+    area()
+  ]);
+  onUpdate(() => {
+    if (startButton.isHovering()) {
+      startButton.scale.x += (((1.2-startButton.scale.x)/8));
+      startButton.scale.y += (((1.2-startButton.scale.y)/8));
+    } else {
+      startButton.scale.x += ((1-startButton.scale.x)/8);
+      startButton.scale.y += ((1-startButton.scale.y)/8);
+    }
+  });
+
+  startButton.onClick(() => {
+    go("main")
+  })
+});
 scene("main", () => {
   
   let score = 0;
@@ -244,4 +273,4 @@ scene("over", (finalScore) => {
 
 
 // Activating the main scene
-go("main"); 
+go("menu"); 
